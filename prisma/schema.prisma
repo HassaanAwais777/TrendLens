@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Marketplace is stored as a string constrained to:
+// "DARAZ" | "AMAZON" | "ALIEXPRESS" | "INSTAGRAM"
+
+model Product {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  brand         String
+  category      String
+  description   String
+  hue           Int
+  momentumScore Float
+  peakWeek      Int?
+  listings      Listing[]
+  priceHistory  PriceHistory[]
+  trendPoints   TrendPoint[]
+  reviews       Review[]
+  createdAt     DateTime @default(now())
+}
+
+model Listing {
+  id            String  @id @default(cuid())
+  productId     String
+  marketplace   String
+  price         Float
+  currency      String
+  originalPrice Float?
+  rating        Float
+  reviewCount   Int
+  deliveryDays  Int
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model PriceHistory {
+  id        String  @id @default(cuid())
+  productId String
+  week      Int
+  price     Float
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, week])
+  @@index([productId])
+}
+
+model TrendPoint {
+  id        String  @id @default(cuid())
+  productId String
+  week      Int
+  interest  Float
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, week])
+  @@index([productId])
+}
+
+model Review {
+  id          String  @id @default(cuid())
+  productId   String
+  marketplace String
+  author      String
+  rating      Int
+  title       String
+  body        String
+  daysAgo     Int
+  verified    Boolean
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
